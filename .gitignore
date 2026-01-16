@@ -36,6 +36,7 @@
 *.exe
 *.out
 *.app
+syspeek
 
 # debug information files
 *.dwo
