@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/utsname.h>
 #include <fstream>
+#include <string>
 
 void print_uptime() {
     std::ifstream file ("/proc/uptime");
@@ -25,6 +26,28 @@ void print_uptime() {
 	      << minutes << " minutes\n";
 }
 
+void print_cpu_model() {
+    std::ifstream file("/proc/cpuinfo");
+    if(!file) {
+	std::cerr << "Failed to open /proc/cpuinfo\n";
+	return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+	if (line.find("model name") != std::string::npos) {
+	    auto pos = line.find(':');
+	    if (pos != std::string::npos) {
+		std::string model = line.substr(pos + 2);
+		std::cout << "CPU: " << model << "\n";
+	    }
+	    return;
+	}
+    }
+
+    std::cerr << "CPU model not found\n";
+}
+
 int main() {
 
     //Hostname
@@ -44,6 +67,7 @@ int main() {
     std::cout << "Hostname: " << hostname << "\n";
     std::cout << "Kernel: " << sysinfo.sysname << " " << sysinfo.release << "\n";
     print_uptime();
+    print_cpu_model();
 
     return 0;
 
