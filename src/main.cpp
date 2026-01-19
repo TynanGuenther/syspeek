@@ -1,8 +1,49 @@
+#include <cstdint>
 #include <iostream>
 #include <unistd.h>
 #include <sys/utsname.h>
 #include <fstream>
 #include <string>
+
+void print_mem_usage() {
+    std::ifstream file("/proc/meminfo");
+    if (!file) {
+	std::cerr << "Failed to open /proc/meminfo\n";
+	return;
+    }
+
+    std::string key;
+    long val;
+    std::string unit;
+    
+    long mem_tot = 0;
+    long mem_avail = 0;
+
+    while (file >> key >> val >> unit) {
+	if (key == "MemTotal:") {
+	    mem_tot = val;
+	} else if (key == "MemAvailable:") {
+	    mem_avail = val;
+	}
+
+	if (mem_tot && mem_avail) {
+	    break;
+	}
+    }
+    if (!mem_tot || !mem_avail) {
+	std::cerr << "Memory info not found\n";
+	return;
+    }
+
+    long mem_used = mem_tot - mem_avail;
+
+    double tot_gb = mem_tot / (1024.0 * 1024.0);
+    double used_gb = mem_used / (1024.0 * 1024.0);
+
+    std::cout << "Memory: "
+	      << used_gb << " GB / "
+	      << tot_gb << " GB\n";
+}
 
 void print_uptime() {
     std::ifstream file ("/proc/uptime");
@@ -68,6 +109,7 @@ int main() {
     std::cout << "Kernel: " << sysinfo.sysname << " " << sysinfo.release << "\n";
     print_uptime();
     print_cpu_model();
+    print_mem_usage();
 
     return 0;
 
