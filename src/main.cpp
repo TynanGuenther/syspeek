@@ -4,6 +4,27 @@
 #include <sys/utsname.h>
 #include <fstream>
 #include <string>
+#include <sys/statvfs.h>
+
+void print_disk_usage() {
+    struct statvfs fs;
+    if (statvfs("/", &fs) != 0) {
+	perror("statvfs");
+	return;
+    }
+
+    unsigned long long tot = fs.f_blocks * fs.f_frsize;
+    unsigned long long avail = fs.f_bavail * fs.f_frsize;
+    unsigned long long used = tot - avail;
+
+    double tot_gb = tot / (1024.0 * 1024.0 * 1024.0);
+    double used_gb = used / (1024.0 * 1024.0 * 1024.0);
+
+    std::cout << "Disk (/): "
+	     << used_gb << " GB / "
+	     << tot_gb << " GB\n";
+}
+
 
 void print_mem_usage() {
     std::ifstream file("/proc/meminfo");
@@ -110,6 +131,7 @@ int main() {
     print_uptime();
     print_cpu_model();
     print_mem_usage();
+    print_disk_usage();
 
     return 0;
 
